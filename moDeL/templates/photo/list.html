@@ -1,49 +1,44 @@
 {% extends 'base.html' %}
 {%  block head %}
-    <style>
+       <style>
         canvas {
             position: absolute;
-            transform: translate(-50%, -80px);
-            top: 75%;
-            left: 50%;
+            transform: translate(-50%, 75%);
             padding: 0px 0px 20px 0px;
-
         }
 
         video {
             position: absolute;
-            transform: translate(-50%, -80px);
-            top: 75%;
-            left: 50%;
+            transform: translate(-50%, 75%);
             padding: 0px 0px 20px 0px;
         }
-
     </style>
 {% endblock %}
+
 {% block title %}{% endblock %}
 
 {% block content %}
     <center>
         <div class="main" style="padding:50px 0 20px 0;">
-                <h2>너희들도 moDeL 어때팀의 <mark>인물 구도 추천 서비스</mark>입니다!</h2>
+                <h1>너희들도 moDeL 어때팀의 <mark>인물 구도 추천 서비스</mark>입니다!</h1>
         </div>
 
         <video id="video" width="640" height="480" autoplay muted playsinline></video>
-        <canvas id="canvas"></canvas>
+        <canvas id="canvas" width="640" height="480"></canvas>
 
-        <div class="results" style="padding:30px 0px 30px 0px;">
-            <div class="card">
+        <div class="results" style="padding: 40px 0px 30px 0px;">
+            <div class="card" style="padding: 20px 0px 0px 0px;">
                 <div class="card-body">
-                    <h5 id ="notFound"></h5>
-                    <h3 id ="realtime_ratio" style="padding:10px 0px 10px 0px;"></h3>
-                    <h4 id ="result"></h4>
+                    <h3 id ="notFound"></h3>
+                    <h2 id ="realtime_ratio" style="padding:10px 0px 10px 0px;"></h2>
+                    <h2 id ="result"></h2>
                 </div>
             </div>
         </div>
 
         <div class="photo">
             <h5 id ="ratio" style="padding: 0px 0px 10px 0px;"></h5>
-            <h5 id ="notFound"></h5>
+
 
             <button type="button" onclick="location.href='{% url 'photo:photo_upload' %}'" class="btn btn-dark">Upload</button>
             <a  style="text-decoration:none; color: black" onclick="this.nextSibling.style.display=(this.nextSibling.style.display=='none')?'block':'none';" href="javascript:void(0)">
@@ -63,7 +58,7 @@
 {% endblock %}
 
 {% block js %}
-    <script src="https://cdn.jsdelivr.net/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/jquery/1.12.4/jquery.min.js"></script>
     <script>
         var input_ratio = 0.0;
         var realtime_ratio = 0.0;
@@ -88,11 +83,12 @@
             var isDone = false;
 
             if(document.images.length == 0) {
-                document.getElementById('notFound').innerHTML = "❗😲 입력된 사진이 없어요 😲❗" + '<br/>' + "❓🧐 마음에 드는 사진을 넣어보는게 어때요? 🧐❓";
+                document.getElementById('notFound').innerHTML = "❗😲 입력된 사진이 없어요 😲❗" + '<br/>' + "👯‍♂ 원하는 비율의 사진을 최소 세 장 넣어주세요 👯‍♀";
             }
+
             for (var index = 0; index < document.images.length; index++) {
-                element.innerText='';
                 document.getElementById('ratio').innerHTML = "👩‍💻 *** 입력하신 사진들로 비율을 계산하는 중이에요 *** 👨‍💻";
+
                 const net = await bodyPix.load();
 
                 const segmentation = await net.segmentPersonParts(document.images[index], {
@@ -109,7 +105,7 @@
                     data[i] = segmentation.data[i];
                 }
 
-                console.log(data)
+                // console.log(data)
 
                 loop1:
                     for (var y = 0; y < height; y++) {
@@ -141,30 +137,37 @@
                         }
                     }
 
-                console.log(first_face, last_face, last_foot);
+                //console.log(first_face, last_face, last_foot);
 
                 ratio = (Math.abs((last_foot - first_face) / (last_face - first_face)));
-                console.log(ratio);
+                // console.log(ratio);
 
                 ratio_sum += ratio;
-                console.log(ratio_sum);
+                // console.log(ratio_sum);
 
                 if(index == document.images.length-1)
                     isDone = true;
-
             }
             input_ratio = (ratio_sum / document.images.length).toFixed(2);
+
             if(isDone == true)
                 document.getElementById('ratio').innerHTML = "입력하신 사진들로 계산된 희망 비율은 " + input_ratio + " 입니다 😮 ";
         }
 
         loadAndPredict();
 
-        if(document.images.length != 0) {
-        navigator.mediaDevices.getUserMedia({video: true, audio: false})
-            .then(function (stream) {
-                video.srcObject = stream;
-            });
+
+
+        if (document.images.length > 0) {
+            document.getElementById('notFound').innerHTML = "입력된 사진이 부족해요!" + '<br/>' + (3 - document.images.length) + "장을 더 입력해주세요!";
+        }
+
+        if(document.images.length  >= 3 ) {
+            element.innerText="";
+            navigator.mediaDevices.getUserMedia({video: true, audio: false})
+                .then(function (stream) {
+                    video.srcObject = stream;
+                });
         }
 
         var x1 = 0;
@@ -222,15 +225,15 @@
 
             function predict() {
                 model.segmentPersonParts(video).then(segmentation => {
-                    console.log(segmentation);
+                    // console.log(segmentation);
                     canvas.width = video.width;
                     w = video.width;
                     canvas.height = video.height;
                     h = video.height;
                     const mask = bodyPix.toColoredPartMask(segmentation);
 
-                    console.log(mask);
-                    console.log(canvas.width, video.width, canvas.height, video.height);
+                    // console.log(mask);
+                    // console.log(canvas.width, video.width, canvas.height, video.height);
 
                     width = segmentation.width;
                     height = segmentation.height;
@@ -298,25 +301,24 @@
                     realtime_ratio = (Math.abs((last_foot - first_face) / (last_face - first_face))).toFixed(2);
 
                     if (chk_foot == 1 && chk_head == 1) {
-                        document.getElementById('realtime_ratio').innerHTML = "당신의 현재 비율은 " + realtime_ratio  + "입니다!";
+                        document.getElementById('realtime_ratio').innerHTML = "당신의 현재 비율은 " + realtime_ratio  + " 입니다!";
                         if ( input_ratio- realtime_ratio > 0.5) {
                             draw_rec("red");
-                            document.getElementById('result').innerHTML = "모델 도전에 실패했습니다 😥";
+                            document.getElementById('result').innerHTML = "더 좋은 사진을 찍을 수 있어요 😥";
                         }
                         else {
                             draw_rec("green");
-                            document.getElementById('result').innerHTML = "모델 도전에 성공했습니다 🎉";
+                            document.getElementById('result').innerHTML = "좋은 구도의 사진을 찍고있어요 🎉";
                         }
                     }
                     else {
                         element2.innerText = '';
                         element3.innerText = '';
                         document.getElementById('realtime_ratio').innerHTML = "전신을 보여주세요 😥";
-
                         cannot_find_body();
                     }
 
-                    console.log(x1, x2, y1, y2);
+                    //console.log(x1, x2, y1, y2);
                 });
                 requestAnimationFrame(predict);
             }
@@ -324,3 +326,5 @@
 
     </script>
 {%  endblock %}
+
+
